@@ -1,0 +1,55 @@
+- defaultTab: nodes
+  description: ''
+  executionEnabled: true
+  id: 9388fbae-1a60-4a06-81eb-08ed1ab11a79
+  loglevel: INFO
+  name: job_workflow
+  nodeFilterEditable: false
+  scheduleEnabled: true
+  sequence:
+    commands:
+    - description: 'Step 1 '
+      plugins:
+        LogFilter:
+        - config:
+            logData: 'true'
+            regex: ^RUNDECK:DATA:(.+?)\s*=\s*(.+)$
+          type: key-value-data
+      script: |+
+        echo This is Step 1
+
+        # If the condition is not met
+        #echo RUNDECK:DATA:var=fail
+
+        # If the condition is OK
+        echo RUNDECK:DATA:var=success
+
+        exit 0
+
+    - configuration:
+        export: var
+        group: export
+        value: ${data.var*}
+      description: Define global var
+      nodeStep: false
+      type: export-var
+    - description: Step 3
+      exec: echo This is Step 3
+    - description: Step 4
+      exec: echo This is Step4
+    keepgoing: false
+    pluginConfig:
+      WorkflowStrategy:
+        ruleset:
+          rules: |-
+            [*] run-in-sequence
+            [1] run-at-start
+            [2] run-after:1
+
+            # If condition is false
+            [3] run-after:2 if:export.var==fail
+
+            # If condition is true
+            [4] run-after:2 if:export.var==success
+    strategy: ruleset
+  uuid: 9388fbae-1a60-4a06-81eb-08ed1ab11a79
